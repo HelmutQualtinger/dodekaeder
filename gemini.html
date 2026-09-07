@@ -529,24 +529,11 @@
     const cx = S / 2;
     const cy = S / 2;
 
-    // 1. Pentagon background medallion
-    const bgGrad = ctx.createRadialGradient(cx, cy, S * 0.05, cx, cy, S * 0.65);
-    bgGrad.addColorStop(0, "#192233");
-    bgGrad.addColorStop(0.6, person.color);
-    bgGrad.addColorStop(1, "#080b12");
-    ctx.fillStyle = bgGrad;
+    // Transparent background (brass shows through from material color)
+    ctx.fillStyle = "rgba(0, 0, 0, 0)";
     ctx.fillRect(0, 0, S, S);
 
-    // Subtle concentric decorative background rings
-    ctx.strokeStyle = "rgba(229, 179, 88, 0.08)";
-    ctx.lineWidth = 2;
-    for (let r = 80; r <= 460; r += 45) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    // 2. Cropped Circle centered precisely in the middle of each face
+    // Circular photo without gold borders
     const photoR = S * 0.32;
 
     ctx.save();
@@ -574,52 +561,14 @@
       }
       ctx.drawImage(loadedImg, dx, dy, dw, dh);
 
-      // Edge vignette
-      const vig = ctx.createRadialGradient(cx, cy, photoR * 0.68, cx, cy, photoR);
+      // Subtle edge vignette
+      const vig = ctx.createRadialGradient(cx, cy, photoR * 0.7, cx, cy, photoR);
       vig.addColorStop(0, "rgba(0,0,0,0)");
-      vig.addColorStop(1, "rgba(0,0,0,0.45)");
+      vig.addColorStop(1, "rgba(0,0,0,0.2)");
       ctx.fillStyle = vig;
-      ctx.fillRect(cx - photoR, cy - photoR, photoR * 2, photoR * 2);
-    } else {
-      ctx.fillStyle = "#1e2b40";
       ctx.fillRect(cx - photoR, cy - photoR, photoR * 2, photoR * 2);
     }
     ctx.restore();
-
-    // 3. Circular Golden Medallion Borders
-    // Golden tick marks radiating from the circle
-    ctx.strokeStyle = "rgba(229, 179, 88, 0.45)";
-    ctx.lineWidth = 3;
-    for (let i = 0; i < 40; i++) {
-      const a = (Math.PI * 2 / 40) * i;
-      const r1 = photoR + 5;
-      const r2 = photoR + (i % 4 === 0 ? 18 : 11);
-      ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
-      ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
-      ctx.stroke();
-    }
-
-    // Inner bright brass ring
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = "#e5b358";
-    ctx.beginPath();
-    ctx.arc(cx, cy, photoR + 2, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Highlight inner rim
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#fff3c4";
-    ctx.beginPath();
-    ctx.arc(cx, cy, photoR + 7, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Outer perimeter ring for pentagon boundary
-    ctx.strokeStyle = "rgba(229, 179, 88, 0.35)";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(cx, cy, S * 0.46, 0, Math.PI * 2);
-    ctx.stroke();
 
     // Names are revealed only in the plaque on click, not on the medallion itself.
 
@@ -760,6 +709,7 @@
   const geometry = buildDodecahedron(RADIUS);
   const materials = PEOPLE.map(p => new THREE.MeshStandardMaterial({
     color: 0xb5a642,
+    map: generateFaceTexture(p, null),
     roughness: 0.5,
     metalness: 0.85
   }));
