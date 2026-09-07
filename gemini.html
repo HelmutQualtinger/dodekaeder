@@ -890,6 +890,18 @@
   let velY = 0;
   let autoRotate = true;
 
+  // Tracks every simultaneously active pointer (finger) by id, so a second
+  // touch landing turns single-finger drag-rotate into two-finger pinch-zoom
+  // instead of the two gestures fighting over the same coordinates.
+  const activePointers = new Map();
+  let pinchStartDist = null;
+  let wasPinching = false;
+
+  function pinchDistance() {
+    const pts = [...activePointers.values()];
+    return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+  }
+
   function pickFace(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     mouseNdc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
@@ -900,18 +912,44 @@
   }
 
   canvas.addEventListener("pointerdown", (e) => {
-    isDragging = true;
-    hasMoved = false;
-    lastX = e.clientX;
-    lastY = e.clientY;
-    velX = 0;
-    velY = 0;
-    isTransitioning = false;
-    canvas.classList.add("dragging");
     canvas.setPointerCapture(e.pointerId);
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (activePointers.size === 2) {
+      isDragging = false;
+      wasPinching = true;
+      pinchStartDist = pinchDistance();
+      canvas.classList.remove("dragging");
+      return;
+    }
+    if (activePointers.size === 1) {
+      isDragging = true;
+      hasMoved = false;
+      wasPinching = false;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      velX = 0;
+      velY = 0;
+      isTransitioning = false;
+      canvas.classList.add("dragging");
+    }
   });
 
   canvas.addEventListener("pointermove", (e) => {
+    if (activePointers.has(e.pointerId)) {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    if (activePointers.size === 2) {
+      const dist = pinchDistance();
+      if (pinchStartDist != null) {
+        const delta = dist - pinchStartDist;
+        camera.position.z = THREE.MathUtils.clamp(camera.position.z - delta * 0.02, 3.5, 9.0);
+      }
+      pinchStartDist = dist;
+      return;
+    }
+
     if (!isDragging) {
       const hoverIdx = pickFace(e.clientX, e.clientY);
       canvas.classList.toggle("hoverable", hoverIdx !== -1);
@@ -934,11 +972,34 @@
   });
 
   function onPointerUp(e) {
-    if (!isDragging) return;
+    activePointers.delete(e.pointerId);
+
+    if (activePointers.size >= 2) {
+      pinchStartDist = pinchDistance();
+      return;
+    }
+    if (activePointers.size === 1) {
+      // One finger lifted off mid-pinch, one still down: resume drag-rotate
+      // from the remaining finger's position instead of jumping.
+      pinchStartDist = null;
+      const [remaining] = activePointers.values();
+      isDragging = true;
+      hasMoved = true;
+      lastX = remaining.x;
+      lastY = remaining.y;
+      canvas.classList.add("dragging");
+      return;
+    }
+
+    pinchStartDist = null;
+    if (!isDragging) {
+      wasPinching = false;
+      return;
+    }
     isDragging = false;
     canvas.classList.remove("dragging");
 
-    if (!hasMoved) {
+    if (!hasMoved && !wasPinching) {
       const idx = pickFace(e.clientX, e.clientY);
       if (idx !== -1) {
         if (idx === selectedIndex && plaque.classList.contains("visible")) {
@@ -951,12 +1012,13 @@
         hidePlaque();
       }
     }
+    wasPinching = false;
   }
 
   canvas.addEventListener("pointerup", onPointerUp);
   canvas.addEventListener("pointercancel", onPointerUp);
 
-  // Zoom with Wheel
+  // Zoom with mouse wheel (desktop) or two-finger pinch (touch, handled above).
   canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
     camera.position.z = THREE.MathUtils.clamp(camera.position.z + e.deltaY * 0.004, 3.5, 9.0);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "oesterreicher-v3";
+const CACHE_NAME = "oesterreicher-v4";
 const CORE_ASSETS = [
   "./gemini.html",
   "./manifest.json",
