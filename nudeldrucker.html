@@ -759,9 +759,9 @@
   const RADIUS = 1.62;
   const geometry = buildDodecahedron(RADIUS);
   const materials = PEOPLE.map(p => new THREE.MeshStandardMaterial({
-    map: generateFaceTexture(p, null),
-    roughness: 0.32,
-    metalness: 0.20
+    color: 0xb5a642,
+    roughness: 0.5,
+    metalness: 0.85
   }));
 
   const mainGroup = new THREE.Group();
