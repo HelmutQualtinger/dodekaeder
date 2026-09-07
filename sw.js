@@ -1,7 +1,9 @@
-const CACHE_NAME = "oesterreicher-v1";
+const CACHE_NAME = "oesterreicher-v2";
 const CORE_ASSETS = [
   "./gemini.html",
   "./manifest.json",
+  "./nudeldrucker.html",
+  "./manifest-nudeldrucker.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-512-maskable.png",

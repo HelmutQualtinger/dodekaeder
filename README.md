@@ -1,6 +1,6 @@
 # Dodekaeder
 
-Two self-contained, single-file 3D dodecahedron apps built with [Three.js](https://threejs.org/). Each face of the solid is a circular portrait medallion; drag to rotate, click a face for details.
+Three self-contained, single-file 3D dodecahedron apps built with [Three.js](https://threejs.org/). Each face of the solid is a circular portrait medallion; drag to rotate, click a face for details.
 
 **Live:** https://helmutqualtinger.github.io/dodekaeder/
 
@@ -9,10 +9,11 @@ Two self-contained, single-file 3D dodecahedron apps built with [Three.js](https
 | File | What it is |
 |---|---|
 | `gemini.html` | **Austrian edition.** Mozart, Freud, Schwarzenegger, Kaiserin Elisabeth ("Sisi"), Schrödinger, Klimt, Schubert, Johann Strauss (Sohn), Hedy Lamarr, Falco, Landsteiner, Wittgenstein. Portraits are embedded as base64 (fully offline-capable). German UI. Names are hidden until you click a face. Installable as a PWA. |
+| `nudeldrucker.html` | **Austrian public-figures edition.** Richard Lugner, DJ Ötzi, Heinz Fischer, Leonore Gewessler, Andreas Babler, Armin Wolf, Conchita Wurst, Alexander Van der Bellen, Hermes Phettberg, Karl Merkatz, Erika Pluhar, Elfriede Jelinek. Same engine/UX as `gemini.html` (embedded base64 portraits, German UI, names hidden until click, installable PWA via `manifest-nudeldrucker.json`). |
 | `twelve-legends.html` | **Original edition.** Einstein, Curie, Newton, Darwin, Tesla, Lovelace, Galileo, Hawking, Bohr, Franklin, Turing, Feynman. Portraits are fetched live from Wikimedia Commons at load time. English UI, hover tooltips instead of a click plaque. |
-| `build_austrians.py` | Downloads portraits from Wikipedia, crops/enhances them, and (re-)embeds them as base64 into `gemini.html`. Only needed if you want to swap one of the 12 Austrians for someone else, or regenerate a portrait. |
-| `manifest.json`, `sw.js`, `icons/` | PWA support for `gemini.html` — web app manifest, offline service worker, and app icons (192/512/512-maskable/apple-touch/favicon). |
-| `images/` | Portrait JPGs/PNGs used as the source for `gemini.html`'s embedded base64, plus `social-preview.jpg` (the Open Graph / Twitter Card image). |
+| `build_austrians.py` | Downloads portraits from Wikipedia, crops/enhances them, and (re-)embeds them as base64 into `gemini.html`. Only needed if you want to swap one of the 12 Austrians for someone else, or regenerate a portrait. `nudeldrucker.html`'s portraits were built the same way but by hand, not via this script. |
+| `manifest.json` / `manifest-nudeldrucker.json`, `sw.js`, `icons/` | PWA support for `gemini.html` and `nudeldrucker.html` — one web app manifest per page (so each installs as its own app), a shared offline service worker, and shared app icons (192/512/512-maskable/apple-touch/favicon). |
+| `images/` | Portrait JPGs/PNGs used as the source for the embedded base64 in both `gemini.html` and `nudeldrucker.html`, plus `social-preview.jpg` / `social-preview-nudeldrucker.jpg` (the Open Graph / Twitter Card images). |
 | `images_b64.json` | Leftover intermediate file from an earlier build step — not read by anything currently. Safe to ignore or delete. |
 
 ## Running it
@@ -25,7 +26,7 @@ python3 -m http.server 8080
 # then open http://localhost:8080/gemini.html
 ```
 
-## Installing `gemini.html` as an app (PWA)
+## Installing `gemini.html` / `nudeldrucker.html` as an app (PWA)
 
 No app store, no build tooling, no developer account — this works because the page ships a web app manifest, a set of icons, and a service worker.
 
@@ -46,4 +47,6 @@ After any change to the deployed page, re-check the preview (both cache aggressi
 
 ## Licensing note on portraits
 
-All 12 Austrian portraits are public domain or CC BY-SA (Wikimedia Commons), **except Falco's**, which is a fair-use press photo hosted on English Wikipedia rather than Commons. Fine for personal/local use; if you deploy this publicly, consider swapping it via `build_austrians.py` for a freely-licensed alternative.
+All 12 portraits in `gemini.html` are public domain or CC BY-SA (Wikimedia Commons), **except Falco's**, which is a fair-use press photo hosted on English Wikipedia rather than Commons. Fine for personal/local use; if you deploy this publicly, consider swapping it via `build_austrians.py` for a freely-licensed alternative.
+
+All 12 portraits in `nudeldrucker.html` are CC BY / CC BY-SA / CC0 from Wikimedia Commons — no fair-use exceptions.

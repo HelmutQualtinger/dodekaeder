@@ -1,0 +1,18 @@
+{
+  "name": "Nudeldrucker — 12 österreichische Persönlichkeiten",
+  "short_name": "Nudeldrucker",
+  "description": "Interaktives 3D-Dodekaeder mit 12 bekannten österreichischen Persönlichkeiten.",
+  "start_url": "./nudeldrucker.html",
+  "scope": "./",
+  "id": "./nudeldrucker.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07090e",
+  "theme_color": "#07090e",
+  "lang": "de",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
