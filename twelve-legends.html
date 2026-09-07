@@ -533,10 +533,10 @@
 
     const geometry = buildDodecahedron(RADIUS);
     const materials = textures.map(tex => new THREE.MeshStandardMaterial({
-      color: 0xb5a642,
+      color: 0xffffff,
       map: tex,
-      roughness: 0.5,
-      metalness: 0.85,
+      roughness: 0.7,
+      metalness: 0.4,
     }));
 
     group = new THREE.Group();
