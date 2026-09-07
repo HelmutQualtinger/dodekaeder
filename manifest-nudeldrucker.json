@@ -1,6 +1,6 @@
 {
-  "name": "Nudeldrucker — 12 österreichische Persönlichkeiten",
-  "short_name": "Nudeldrucker",
+  "name": "Wuchtelschieber — 12 österreichische Persönlichkeiten",
+  "short_name": "Wuchtelschieber",
   "description": "Interaktives 3D-Dodekaeder mit 12 bekannten österreichischen Persönlichkeiten.",
   "start_url": "./nudeldrucker.html",
   "scope": "./",
