@@ -2,6 +2,8 @@
 
 Two self-contained, single-file 3D dodecahedron apps built with [Three.js](https://threejs.org/). Each face of the solid is a circular portrait medallion; drag to rotate, click a face for details.
 
+**Live:** https://helmutqualtinger.github.io/dodekaeder/
+
 ## Files
 
 | File | What it is |
@@ -36,9 +38,9 @@ Once installed it launches full-screen (no browser chrome) and works offline —
 
 ## Social media preview (Open Graph / Twitter Card)
 
-`gemini.html`'s `<head>` has `og:*` and `twitter:*` tags and points at `images/social-preview.jpg` (a real screenshot of the app, 1200×630). **Before sharing a link to this page, replace the placeholder domain** `https://example.com/gemini` in those tags with wherever you actually deploy it — social crawlers fetch the image and URL directly, they can't reach your local disk.
+`gemini.html`'s `<head>` has `og:*` and `twitter:*` tags pointing at `https://helmutqualtinger.github.io/dodekaeder/...` and `images/social-preview.jpg` (a real screenshot of the app, 1200×630). If this ever moves to a different domain, update those tags accordingly.
 
-After deploying, re-check the preview (both cache aggressively, so force a re-scrape after any change):
+After any change to the deployed page, re-check the preview (both cache aggressively, so force a re-scrape):
 - Facebook/WhatsApp/LinkedIn: https://developers.facebook.com/tools/debug/
 - X/Twitter: https://cards-dev.twitter.com/validator
 
