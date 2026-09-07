@@ -529,41 +529,29 @@
     const cx = S / 2;
     const cy = S / 2;
 
-    // Transparent background (brass shows through from material color)
-    ctx.fillStyle = "rgba(0, 0, 0, 0)";
+    // Full background: brushed gold gradient
+    const bgGrad = ctx.createRadialGradient(cx, cy, S * 0.05, cx, cy, S * 0.65);
+    bgGrad.addColorStop(0, "#d4af37");
+    bgGrad.addColorStop(0.5, "#c9a961");
+    bgGrad.addColorStop(1, "#b8860b");
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, S, S);
 
-    const photoR = S * 0.32;
-    const outerR = photoR * 1.6;
-
-    // Outer ring: brushed gold with radial texture
-    ctx.save();
-    const goldGrad = ctx.createRadialGradient(cx, cy, photoR * 0.9, cx, cy, outerR);
-    goldGrad.addColorStop(0, "rgba(229, 179, 88, 0.1)");
-    goldGrad.addColorStop(0.5, "rgba(229, 179, 88, 0.35)");
-    goldGrad.addColorStop(1, "rgba(229, 179, 88, 0.5)");
-    ctx.fillStyle = goldGrad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Brushed texture pattern for gold ring
-    ctx.globalAlpha = 0.08;
-    ctx.strokeStyle = "#b8860b";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 60; i++) {
-      const angle = (Math.PI * 2 / 60) * i;
-      const r1 = photoR * 0.95;
-      const r2 = outerR + 10;
+    // Brushed texture pattern across entire surface
+    ctx.globalAlpha = 0.12;
+    ctx.strokeStyle = "#8b6914";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 120; i++) {
+      const angle = (Math.PI * 2 / 120) * i;
       ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
-      ctx.lineTo(cx + Math.cos(angle) * r2, cy + Math.sin(angle) * r2);
+      ctx.moveTo(cx + Math.cos(angle) * (S * 0.02), cy + Math.sin(angle) * (S * 0.02));
+      ctx.lineTo(cx + Math.cos(angle) * (S * 0.5), cy + Math.sin(angle) * (S * 0.5));
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
-    ctx.restore();
 
     // Inner photo circle
+    const photoR = S * 0.32;
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, photoR, 0, Math.PI * 2);
