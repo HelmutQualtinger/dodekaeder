@@ -1,0 +1,553 @@
+<meta charset="utf-8">
+<title>Twelve Legends</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300..900;1,300..900&family=Manrope:wght@400;600;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+  :root{
+    --bg-core:   #1a140d;
+    --bg-edge:   #050403;
+    --brass:     #c9a24b;
+    --brass-hi:  #e8c874;
+    --brass-dim: #8a713a;
+    --parchment: #ece3d2;
+    --muted:     #a89a86;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html, body{
+    margin:0;
+    height:100%;
+    background: radial-gradient(120% 90% at 50% 38%, var(--bg-core) 0%, var(--bg-edge) 72%);
+    color: var(--parchment);
+    font-family: "Manrope", system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  #stage{
+    position:fixed;
+    inset:0;
+  }
+
+  #stage canvas{
+    display:block;
+    width:100%;
+    height:100%;
+    touch-action: none;
+    cursor: grab;
+  }
+  #stage canvas.dragging{ cursor: grabbing; }
+  #stage canvas.hoverable{ cursor: pointer; }
+
+  .mark{
+    position:fixed;
+    top: 28px;
+    left: 32px;
+    pointer-events:none;
+  }
+  .mark .name{
+    font-family:"Fraunces", serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(20px, 2.6vw, 28px);
+    color: var(--brass-hi);
+    letter-spacing: 0.01em;
+  }
+  .mark .tag{
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .hint{
+    position:fixed;
+    left:50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass-dim);
+    pointer-events:none;
+    transition: opacity 0.8s ease;
+  }
+  .hint.hidden{ opacity: 0; }
+
+  .tooltip{
+    position:fixed;
+    top:0; left:0;
+    max-width: 240px;
+    opacity: 0;
+    pointer-events:none;
+    transition: opacity 0.15s ease;
+    background: linear-gradient(180deg, rgba(30,24,17,0.94), rgba(14,11,8,0.96));
+    border: 1px solid rgba(201,162,75,0.4);
+    border-radius: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .tooltip.visible{ opacity: 1; }
+  .tooltip .eyebrow{
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .tooltip .name{
+    margin-top: 2px;
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--parchment);
+  }
+  .tooltip .credit{
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--brass-dim);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .tooltip, .hint{ transition: none; }
+  }
+</style>
+
+<div id="stage"></div>
+
+<div class="mark">
+  <div class="name">Twelve Legends</div>
+  <div class="tag">A Rotating Gallery of Science</div>
+</div>
+
+<div class="hint" id="hint">Loading gallery&hellip;</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="eyebrow" id="tooltipField">Field</div>
+  <div class="name" id="tooltipName">Name</div>
+  <div class="credit" id="tooltipCredit">Credit.</div>
+</div>
+
+<script>
+(function(){
+
+  const PEOPLE = [
+    { name:"Albert Einstein", field:"Theoretical Physics",
+      hue:0x2b4a63,
+      photo:"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Albert_Einstein_Head_cleaned.jpg/960px-Albert_Einstein_Head_cleaned.jpg",
+      credit:"Oren Jack Turner, 1947 — Wikimedia Commons, public domain" },
+    { name:"Marie Curie", field:"Physics & Chemistry",
+      hue:0x7a2331,
+      photo:"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/Marie_Curie_c._1920s.jpg/960px-Marie_Curie_c._1920s.jpg",
+      credit:"Henri Manuel, c. 1920s — Wikimedia Commons, public domain" },
+    { name:"Isaac Newton", field:"Natural Philosophy",
+      hue:0x8a4a24,
+      photo:"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Portrait_of_Sir_Isaac_Newton%2C_1689_%28brightened%29.jpg/960px-Portrait_of_Sir_Isaac_Newton%2C_1689_%28brightened%29.jpg",
+      credit:"Godfrey Kneller, 1689 — Wikimedia Commons, public domain" },
+    { name:"Charles Darwin", field:"Naturalist",
+      hue:0x2f5233,
+      photo:"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Charles_Darwin_seated_crop.jpg/960px-Charles_Darwin_seated_crop.jpg",
+      credit:"Maull & Fox, 1854 — Wikimedia Commons, public domain" },
+    { name:"Nikola Tesla", field:"Electrical Engineering",
+      hue:0x234a3a,
+      photo:"https://upload.wikimedia.org/wikipedia/commons/7/79/Tesla_circa_1890.jpeg",
+      credit:"Napoleon Sarony, c. 1890 — Wikimedia Commons, public domain" },
+    { name:"Ada Lovelace", field:"Mathematics",
+      hue:0x2d3168,
+      photo:"https://upload.wikimedia.org/wikipedia/commons/4/4c/Ada_Lovelace_daguerreotype_by_Antoine_Claudet_1843_-_cropped.png",
+      credit:"Antoine Claudet, 1843 — Wikimedia Commons, public domain" },
+    { name:"Galileo Galilei", field:"Astronomy & Physics",
+      hue:0x4a2b5c,
+      photo:"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Galileo_Galilei_%281564-1642%29_RMG_BHC2700.tiff/lossy-page1-960px-Galileo_Galilei_%281564-1642%29_RMG_BHC2700.tiff.jpg",
+      credit:"Justus Sustermans, 1636 — Wikimedia Commons, public domain" },
+    { name:"Stephen Hawking", field:"Theoretical Physics",
+      hue:0x5a3a24,
+      photo:"https://upload.wikimedia.org/wikipedia/commons/e/eb/Stephen_Hawking.StarChild.jpg",
+      credit:"NASA — Wikimedia Commons, public domain" },
+    { name:"Niels Bohr", field:"Atomic Physics",
+      hue:0x1f5f5b,
+      photo:"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Niels_Bohr.jpg/960px-Niels_Bohr.jpg",
+      credit:"American Institute of Physics — Wikimedia Commons, public domain" },
+    { name:"Rosalind Franklin", field:"X-Ray Crystallography",
+      hue:0x6b2545,
+      photo:"https://upload.wikimedia.org/wikipedia/commons/f/fd/Rosalind_Franklin_%28retouched%29.jpg",
+      credit:"MRC Laboratory of Molecular Biology — Wikimedia Commons, CC BY-SA 4.0" },
+    { name:"Alan Turing", field:"Mathematics & Computing",
+      hue:0x5c1f3d,
+      photo:"https://upload.wikimedia.org/wikipedia/commons/c/ce/Alan_turing_header.jpg",
+      credit:"Elliott & Fry, 1951 — Wikimedia Commons, public domain" },
+    { name:"Richard Feynman", field:"Theoretical Physics",
+      hue:0x8a6a1f,
+      photo:"https://upload.wikimedia.org/wikipedia/commons/2/20/Richard_Feynman_Los_Alamos_ID_badge_%28cropped%29.jpg",
+      credit:"U.S. Army, Los Alamos badge photo, c. 1943 — Wikimedia Commons, public domain" }
+  ];
+
+  const BRASS = "#c9a24b";
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- image + text helpers ----------
+
+  function loadImage(url){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  function drawImageCover(ctx, img, x, y, w, h){
+    const boxRatio = w / h, imgRatio = img.width / img.height;
+    let sx, sy, sw, sh;
+    if (imgRatio > boxRatio){
+      sh = img.height; sw = sh * boxRatio;
+      sx = (img.width - sw) / 2; sy = 0;
+    } else {
+      sw = img.width; sh = sw / boxRatio;
+      sx = 0; sy = (img.height - sh) / 2;
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  }
+
+  function hexToRgb(hex){ return { r:(hex>>16)&255, g:(hex>>8)&255, b:hex&255 }; }
+  function shade(hex, amt){
+    const {r,g,b} = hexToRgb(hex);
+    const f = v => Math.max(0, Math.min(255, Math.round(v + amt)));
+    return `rgb(${f(r)},${f(g)},${f(b)})`;
+  }
+  function hexToCss(hex){
+    return "#" + hex.toString(16).padStart(6, "0");
+  }
+
+  // ---------- face texture: a brass medallion cameo, portrait only ----------
+  //
+  // The portrait stays within ~185px of the 512x512 canvas's center. A regular
+  // pentagon's boundary is never closer to its center than 0.809x its corner
+  // radius (the edge midpoints); at our UV scale (corner radius 0.47 of the
+  // texture) that floor is ~194px, so staying under ~185px guarantees the ring
+  // is never clipped by the face's true pentagon edge, in any orientation.
+
+  async function makeFaceTexture(person){
+    const S = 512;
+    const canvas = document.createElement("canvas");
+    canvas.width = S; canvas.height = S;
+    const ctx = canvas.getContext("2d");
+    const cx = S/2, cy = S/2;
+
+    const grad = ctx.createRadialGradient(cx, cy - S*0.08, S*0.05, cx, cy, S*0.62);
+    grad.addColorStop(0, shade(person.hue, 30));
+    grad.addColorStop(0.55, shade(person.hue, 0));
+    grad.addColorStop(1, shade(person.hue, -46));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, S, S);
+
+    const portraitR = 172;
+
+    let img = null;
+    try { img = await loadImage(person.photo); } catch (e) { /* leave a blank medallion on failure */ }
+
+    if (img){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, portraitR, 0, Math.PI*2);
+      ctx.clip();
+      ctx.filter = "grayscale(1) contrast(1.15) brightness(1.12)";
+      drawImageCover(ctx, img, cx - portraitR, cy - portraitR, portraitR*2, portraitR*2);
+      ctx.filter = "none";
+      ctx.globalCompositeOperation = "overlay";
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = hexToCss(person.hue);
+      ctx.fillRect(cx - portraitR, cy - portraitR, portraitR*2, portraitR*2);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.restore();
+    }
+
+    ctx.strokeStyle = BRASS;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, portraitR + 6, 0, Math.PI*2);
+    ctx.stroke();
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    return tex;
+  }
+
+  // ---------- geometry: custom flat per-face UVs + normals for a true 12-medallion solid ----------
+
+  function buildDodecahedron(radius){
+    const geometry = new THREE.DodecahedronGeometry(radius, 0);
+    const pos = geometry.attributes.position;
+    const uv = new Float32Array(pos.count * 2);
+    const nrm = new Float32Array(pos.count * 3);
+
+    // Three's Dodecahedron data lays out each face as 3 fan triangles sharing one
+    // vertex: positions 2,5,8 in every 9-vertex block are that shared corner, so
+    // the five *unique* pentagon corners first appear at block-local indices
+    // 0,1,2,4,7 (verified against the live geometry, not assumed from memory).
+    const cornerSlots = [0, 1, 2, 4, 7];
+    const fanPattern = [0, 1, 2, 1, 3, 2, 3, 4, 2];
+
+    for (let f = 0; f < 12; f++){
+      const base = f * 9;
+      const corners = cornerSlots.map(i => new THREE.Vector3().fromBufferAttribute(pos, base + i));
+      const center = new THREE.Vector3();
+      corners.forEach(v => center.add(v));
+      center.multiplyScalar(1/5);
+      const normal = center.clone().normalize();
+
+      // Anchor "up" on this face's own first corner (not a world axis), so every
+      // face gets the same canonical pentagon orientation — one vertex at the
+      // top, an edge midpoint at the bottom — regardless of which way it points
+      // in space. That makes the safe-content radius above a fixed, known value.
+      const up = corners[0].clone().sub(center).normalize();
+      const right = new THREE.Vector3().crossVectors(normal, up).normalize();
+
+      const pts2d = corners.map(v => {
+        const rel = v.clone().sub(center);
+        return { x: rel.dot(right), y: rel.dot(up) };
+      });
+      const maxR = Math.max(...pts2d.map(p => Math.hypot(p.x, p.y)));
+
+      for (let k = 0; k < 9; k++){
+        const p = pts2d[fanPattern[k]];
+        uv[(base+k)*2]     = 0.5 + (p.x / maxR) * 0.47;
+        uv[(base+k)*2 + 1] = 0.5 - (p.y / maxR) * 0.47;
+        nrm[(base+k)*3]     = normal.x;
+        nrm[(base+k)*3 + 1] = normal.y;
+        nrm[(base+k)*3 + 2] = normal.z;
+      }
+      geometry.addGroup(base, 9, f);
+    }
+
+    geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+    geometry.setAttribute("normal", new THREE.BufferAttribute(nrm, 3));
+    return geometry;
+  }
+
+  // ---------- scene ----------
+
+  const stage = document.getElementById("stage");
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  stage.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 50);
+  camera.position.set(0, 0.35, 6.4);
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.HemisphereLight(0x6a5a3c, 0x0c0a08, 0.55));
+  const key = new THREE.PointLight(0xffd9a0, 2.4, 20, 2);
+  key.position.set(3.2, 3.4, 4.2);
+  scene.add(key);
+  const rim = new THREE.PointLight(0x5fb0c0, 1.1, 20, 2);
+  rim.position.set(-4, -1.5, -3.5);
+  scene.add(rim);
+  const fill = new THREE.PointLight(0xffffff, 0.35, 20, 2);
+  fill.position.set(-2, 1.5, 3);
+  scene.add(fill);
+
+  // soft contact shadow, faked with an alpha-gradient disc (no shadow map needed)
+  (function addContactShadow(){
+    const c = document.createElement("canvas");
+    c.width = c.height = 256;
+    const cx = c.getContext("2d");
+    const g = cx.createRadialGradient(128,128,10,128,128,128);
+    g.addColorStop(0, "rgba(0,0,0,0.45)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    cx.fillStyle = g;
+    cx.fillRect(0,0,256,256);
+    const tex = new THREE.CanvasTexture(c);
+    const disc = new THREE.Mesh(
+      new THREE.CircleGeometry(2.1, 48),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
+    );
+    disc.rotation.x = -Math.PI/2;
+    disc.position.y = -1.62;
+    scene.add(disc);
+  })();
+
+  const RADIUS = 1.55;
+
+  // ---------- resize ----------
+
+  function resize(){
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  // ---------- interaction: drag to rotate, hover a face for its tooltip ----------
+
+  const canvas = renderer.domElement;
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  const hintEl = document.getElementById("hint");
+  const tooltipEl = document.getElementById("tooltip");
+  const tooltipName = document.getElementById("tooltipName");
+  const tooltipField = document.getElementById("tooltipField");
+  const tooltipCredit = document.getElementById("tooltipCredit");
+
+  let mesh = null, group = null;
+  let dragging = false, moved = false, lastX = 0, lastY = 0;
+  let velX = 0, velY = 0, idleTimer = null, hoveredFace = -1;
+
+  function dismissHint(){
+    hintEl.classList.add("hidden");
+  }
+
+  function positionTooltip(clientX, clientY){
+    const pad = 16;
+    const w = tooltipEl.offsetWidth || 220, h = tooltipEl.offsetHeight || 70;
+    let x = clientX + 18, y = clientY + 18;
+    if (x + w + pad > window.innerWidth) x = clientX - w - 18;
+    if (y + h + pad > window.innerHeight) y = clientY - h - 18;
+    tooltipEl.style.transform = `translate(${x}px, ${y}px)`;
+  }
+
+  function showTooltip(i, clientX, clientY){
+    if (i !== hoveredFace){
+      const p = PEOPLE[i];
+      tooltipField.textContent = p.field;
+      tooltipName.textContent = p.name;
+      tooltipCredit.textContent = "Photo: " + p.credit;
+      hoveredFace = i;
+    }
+    positionTooltip(clientX, clientY);
+    tooltipEl.classList.add("visible");
+    dismissHint();
+  }
+  function hideTooltip(){
+    tooltipEl.classList.remove("visible");
+    hoveredFace = -1;
+  }
+
+  function pickFace(clientX, clientY){
+    if (!mesh) return -1;
+    const rect = canvas.getBoundingClientRect();
+    ndc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    ndc.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    const hits = raycaster.intersectObject(mesh);
+    return hits.length ? hits[0].face.materialIndex : -1;
+  }
+
+  canvas.addEventListener("pointerdown", (e) => {
+    dragging = true; moved = false;
+    lastX = e.clientX; lastY = e.clientY;
+    velX = velY = 0;
+    canvas.classList.add("dragging");
+    canvas.setPointerCapture(e.pointerId);
+    clearTimeout(idleTimer);
+    hideTooltip();
+  });
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (!dragging){
+      const idx = pickFace(e.clientX, e.clientY);
+      canvas.classList.toggle("hoverable", idx !== -1);
+      if (idx !== -1) showTooltip(idx, e.clientX, e.clientY);
+      else hideTooltip();
+      return;
+    }
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+    velX = dx * 0.006; velY = dy * 0.006;
+    if (group){ group.rotation.y += velX; group.rotation.x += velY; }
+  });
+
+  canvas.addEventListener("pointerleave", hideTooltip);
+
+  function endDrag(e){
+    if (!dragging) return;
+    dragging = false;
+    canvas.classList.remove("dragging");
+    if (moved) dismissHint();
+    scheduleIdle();
+  }
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+
+  function scheduleIdle(){
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => { idle = true; }, 1200);
+  }
+  let idle = !reduceMotion;
+  scheduleIdle();
+
+  // ---------- animation ----------
+
+  const clock = new THREE.Clock();
+  let introT = 0;
+
+  function tick(){
+    requestAnimationFrame(tick);
+    const dt = Math.min(clock.getDelta(), 0.05);
+
+    if (introT < 1 && !reduceMotion){
+      introT = Math.min(1, introT + dt * 0.9);
+      const eased = 1 - Math.pow(1 - introT, 3);
+      group.scale.setScalar(THREE.MathUtils.lerp(0.001, 1, eased));
+      group.rotation.y += dt * (1 - introT) * 2.2;
+    }
+
+    if (!dragging && (Math.abs(velX) > 0.0001 || Math.abs(velY) > 0.0001)){
+      group.rotation.y += velX;
+      group.rotation.x += velY;
+      velX *= 0.94; velY *= 0.94;
+    } else if (!dragging && idle && !reduceMotion){
+      group.rotation.y += dt * 0.5;
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  async function start(){
+    if (document.fonts && document.fonts.ready){
+      try {
+        await Promise.all([
+          document.fonts.load("600 34px Fraunces"),
+          document.fonts.load("800 38px Fraunces"),
+          document.fonts.load("800 15px Manrope"),
+        ]);
+        await document.fonts.ready;
+      } catch (e) { /* fonts best-effort; canvas falls back to serif/sans */ }
+    }
+
+    const textures = await Promise.all(PEOPLE.map(p => makeFaceTexture(p)));
+
+    const geometry = buildDodecahedron(RADIUS);
+    const materials = textures.map(tex => new THREE.MeshStandardMaterial({
+      map: tex,
+      roughness: 0.5,
+      metalness: 0.22,
+    }));
+
+    group = new THREE.Group();
+    mesh = new THREE.Mesh(geometry, materials);
+    group.add(mesh);
+    group.rotation.set(0.4, 0.6, 0);
+    group.scale.setScalar(reduceMotion ? 1 : 0.001);
+    scene.add(group);
+
+    hintEl.textContent = "Drag to turn · hover a face";
+    tick();
+  }
+  start();
+})();
+</script>

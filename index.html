@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dodekaeder</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --bg-deep: #07090e;
+    --bg-radial: #131a28;
+    --accent-gold: #e5b358;
+    --text-main: #f0f4fc;
+    --text-sub: #a1b0cb;
+    --card-bg: rgba(14, 20, 32, 0.92);
+    --card-border: rgba(229, 179, 88, 0.36);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+    background: radial-gradient(circle at 50% 30%, var(--bg-radial) 0%, var(--bg-deep) 78%);
+    color: var(--text-main);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 64px 24px;
+    gap: 40px;
+  }
+  h1 {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(32px, 6vw, 52px);
+    background: linear-gradient(135deg, #ffffff 40%, var(--accent-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+  }
+  p.sub {
+    color: var(--text-sub);
+    font-size: 15px;
+    text-align: center;
+    max-width: 44ch;
+    line-height: 1.6;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 22px;
+    width: 100%;
+    max-width: 780px;
+  }
+  a.card {
+    display: block;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 26px 24px;
+    text-decoration: none;
+    color: var(--text-main);
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  a.card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-gold);
+    box-shadow: 0 14px 32px rgba(229, 179, 88, 0.18);
+  }
+  .card .eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-gold);
+  }
+  .card h2 {
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 6px 0 10px;
+  }
+  .card p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text-sub);
+  }
+  footer {
+    color: var(--text-sub);
+    font-size: 12px;
+    text-align: center;
+  }
+  footer a { color: var(--accent-gold); }
+</style>
+</head>
+<body>
+  <h1>Dodekaeder</h1>
+  <p class="sub">Zwei interaktive 3D-Dodekaeder: Ziehen zum Drehen, klicken oder darüberfahren für Details zu jedem Gesicht.</p>
+
+  <div class="cards">
+    <a class="card" href="gemini.html">
+      <div class="eyebrow">Deutsch · Offline-fähig</div>
+      <h2>Zwölf berühmte Österreicher</h2>
+      <p>Mozart, Freud, Schwarzenegger, Sisi, Schrödinger, Klimt, Schubert, Strauss, Lamarr, Falco, Landsteiner, Wittgenstein. Namen erst per Klick sichtbar. Als App installierbar.</p>
+    </a>
+    <a class="card" href="twelve-legends.html">
+      <div class="eyebrow">English · Live Wikimedia photos</div>
+      <h2>Twelve Legends</h2>
+      <p>Einstein, Curie, Newton, Darwin, Tesla, Lovelace, Galileo, Hawking, Bohr, Franklin, Turing, Feynman — hover any face for a tooltip.</p>
+    </a>
+  </div>
+
+  <footer>Built with <a href="https://threejs.org/" target="_blank" rel="noopener noreferrer">Three.js</a></footer>
+</body>
+</html>
