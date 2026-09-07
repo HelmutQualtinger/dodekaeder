@@ -49,4 +49,4 @@ After any change to the deployed page, re-check the preview (both cache aggressi
 
 All 12 portraits in `gemini.html` are public domain or CC BY-SA (Wikimedia Commons), **except Falco's**, which is a fair-use press photo hosted on English Wikipedia rather than Commons. Fine for personal/local use; if you deploy this publicly, consider swapping it via `build_austrians.py` for a freely-licensed alternative.
 
-All 12 portraits in `nudeldrucker.html` are CC BY / CC BY-SA / CC0 from Wikimedia Commons — no fair-use exceptions.
+All 12 portraits in `nudeldrucker.html` are CC BY / CC BY-SA / CC0 from Wikimedia Commons, **except Udo Proksch's**, which is a press photo sourced directly from WDR (a German public broadcaster), not a Commons-licensed image. Fine for personal/local use; flag it the same as Falco's if this is ever deployed more broadly.
